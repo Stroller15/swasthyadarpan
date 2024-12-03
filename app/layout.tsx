@@ -1,32 +1,29 @@
-import "./globals.css"
-import { Outfit } from "next/font/google"
-import { ThemeProvider } from "@/ThemeProvider"
+import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { ToastProvider } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/toaster";
 
+const inter = Inter({ subsets: ["latin"] });
 
-const outfit = Outfit({ 
-  subsets: ["latin"],
-  // Include all weights we'll use
-  weight: ['400', '500', '600', '700'],
-})
+export const metadata: Metadata = {
+  title: "Medical Report Analyzer",
+  description: "Analyze your medical reports with ease",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={outfit.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+    <html lang="en">
+      <body className={inter.className}>
+        <ToastProvider>
           {children}
-        </ThemeProvider>
+          <Toaster />
+        </ToastProvider>
       </body>
     </html>
-  )
+  );
 }
-

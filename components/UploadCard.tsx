@@ -12,9 +12,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
 
 interface UploadCardProps {
   isAnalyzing: boolean;
+  setIsAnalyzing: (isAnalyzing: boolean) => void;
   onAnalyze: () => void;
   analysisMethod: "url" | "upload";
   setAnalysisMethod: (method: "url" | "upload") => void;
@@ -22,12 +24,14 @@ interface UploadCardProps {
 
 export default function UploadCard({
   isAnalyzing,
+  // setIsAnalyzing,
   onAnalyze,
   analysisMethod,
   setAnalysisMethod,
 }: UploadCardProps) {
   const [fileUrl, setFileUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const { toast } = useToast();
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -55,9 +59,44 @@ export default function UploadCard({
     setFile(null);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onAnalyze();
+    if (analysisMethod === "upload" && file) {
+      // setIsAnalyzing(true);
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error("File upload failed");
+        }
+
+        const result = await response.json();
+        console.log("File processed:", result);
+        toast({
+          title: "File processed successfully",
+          description: "Your medical report has been analyzed.",
+        });
+        onAnalyze();
+      } catch (error) {
+        console.error("Error:", error);
+        toast({
+          title: "Error",
+          description: "There was a problem processing your file.",
+          variant: "destructive",
+        });
+      } finally {
+        // setIsAnalyzing(false);
+      }
+    } else if (analysisMethod === "url" && fileUrl) {
+      // Handle URL analysis here
+      onAnalyze();
+    }
   };
 
   return (
